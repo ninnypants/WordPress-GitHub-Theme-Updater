@@ -12,7 +12,7 @@ function github_theme_updater_test_init() {
 		$config = array(
 			'proper_folder_name' => 'github-updater',
 			'api_url' => 'https://api.github.com/repos/ninnypants/WordPress-GitHub-Theme-Updater',
-			'raw_url' => 'https://raw.github.com/ninnypants/WordPress-GitHub-Theme-Updater/master',
+			'raw_url' => 'https://raw.github.com/ninnypants/WordPress-GitHub-Theme-Updater/master/style.css',
 			'github_url' => 'https://github.com/ninnypants/WordPress-GitHub-Theme-Updater',
 			'zip_url' => 'https://github.com/ninnypants/WordPress-GitHub-Theme-Updater/zipball/master',
 			'sslverify' => true,

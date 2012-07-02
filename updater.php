@@ -249,7 +249,7 @@ class WPGitHubThemeUpdater {
 	 * @return object $transient updated plugin data transient
 	 */
 	public function api_check( $transient ) {
-		dbgx_trace_var($transient, '$transient');
+		// dbgx_trace_var($transient, '$transient');
 		// Check if the transient contains the 'checked' information
 		// If not, just return its value without hacking it
 		if ( empty( $transient->checked ) )
@@ -270,7 +270,7 @@ class WPGitHubThemeUpdater {
 			if ( false !== $response )
 				$transient->response[ $this->config['slug'] ] = $response;
 		}
-		// dbgx_trace_var($transient, '$transient');
+		dbgx_trace_var($transient, '$transient');
 		return $transient;
 	}
 
@@ -329,7 +329,7 @@ class WPGitHubThemeUpdater {
 		$wp_filesystem->move( $result['destination'],
  $proper_destination );
 		$result['destination'] = $proper_destination;
-		$activate = activate_plugin( WP_CONTENT_DIR.'/themes/'.$this->config['slug'] );
+		$activate = activate_theme( WP_CONTENT_DIR.'/themes/'.$this->config['slug'] );
 
 		// Output the update message
 		$fail		= __('The plugin has been updated,
