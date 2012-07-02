@@ -318,26 +318,17 @@ class WPGitHubThemeUpdater {
 	 * @param array $result the result of the move
 	 * @return array $result the result of the move
 	 */
-	public function upgrader_post_install( $true,
- $hook_extra,
- $result ) {
+	public function upgrader_post_install( $true, $hook_extra, $result ) {
 
 		global $wp_filesystem;
 
 		// Move & Activate
 		$proper_destination = WP_CONTENT_DIR.'/themes/'.$this->config['proper_folder_name'];
-		$wp_filesystem->move( $result['destination'],
- $proper_destination );
+		$wp_filesystem->move( $result['destination'], $proper_destination );
+		dbgx_trace_var($result, '$result');
 		$result['destination'] = $proper_destination;
-		$activate = activate_theme( WP_CONTENT_DIR.'/themes/'.$this->config['slug'] );
+		$activate = switch_theme( $this->config['slug'], WP_CONTENT_DIR.'/themes/'.$this->config['slug'].'/style.css' );
 
-		// Output the update message
-		$fail		= __('The plugin has been updated,
- but could not be reactivated. Please reactivate it manually.',
- 'github_plugin_updater');
-		$success	= __('Plugin reactivated successfully.',
- 'github_plugin_updater');
-		echo is_wp_error( $activate ) ? $fail : $success;
 		return $result;
 
 	}
