@@ -12,34 +12,24 @@ if ( ! class_exists( 'WPGitHubThemeUpdater' ) ) :
  * @link http://jkudish.com
  * @package GithubUpdater
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright (c) 2011,
- Joachim Kudish
+ * @copyright Copyright (c) 2011, Joachim Kudish
  *
- * GNU General Public License,
- Free Software Foundation
+ * GNU General Public License, Free Software Foundation
  * <http://creativecommons.org/licenses/GPL/2.0/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License,
- or
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
-
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not,
- write to the Free Software
- * Foundation,
- Inc.,
- 59 Temple Place,
- Suite 330,
- Boston,
- MA  02111-1307  USA
+ * along with this program; if not,  write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 class WPGitHubThemeUpdater {
 
@@ -56,54 +46,31 @@ class WPGitHubThemeUpdater {
 
 		$defaults = array(
 			'slug' => $this->theme_basename(__FILE__),
-
 			'proper_folder_name' => dirname( plugin_basename(__FILE__) ),
-
 			'api_url' => 'https://api.github.com/repos/ninnypants/WordPress-GitHub-Theme-Updater',
-
 			'raw_url' => 'https://raw.github.com/ninnypants/WordPress-GitHub-Theme-Updater/master',
-
 			'github_url' => 'https://github.com/ninnypants/WordPress-GitHub-Theme-Updater',
-
 			'zip_url' => 'https://github.com/ninnypants/WordPress-GitHub-Theme-Updater/zipball/master',
-
 			'sslverify' => true,
-
 			'requires' => $wp_version,
-
 			'tested' => $wp_version
 		);
 
-		$this->config = wp_parse_args( $config,
- $defaults );
+		$this->config = wp_parse_args( $config, $defaults );
 
 		$this->set_defaults();
 
 		if ( ( defined('WP_DEBUG') && WP_DEBUG ) || ( defined('WP_GITHUB_FORCE_UPDATE') || WP_GITHUB_FORCE_UPDATE ) )
-			add_action( 'init',
- array( $this,
- 'delete_transients' ) );
+			add_action( 'init', array( $this, 'delete_transients' ) );
 
-		add_filter( 'pre_set_site_transient_update_themes',
- array( $this,
- 'api_check' ) );
+		add_filter( 'pre_set_site_transient_update_themes',  array( $this, 'api_check' ) );
 
 		// Hook into the plugin details screen
-		add_filter( 'themes_api',
- array( $this,
- 'get_theme_info' ),
- 10,
- 3 );
-		add_filter( 'upgrader_post_install',
- array( $this,
- 'upgrader_post_install' ),
- 10,
- 3 );
+		add_filter( 'themes_api', array( $this, 'get_theme_info' ), 10, 3 );
+		add_filter( 'upgrader_post_install', array( $this, 'upgrader_post_install' ), 10, 3 );
 
 		// set timeout
-		add_filter( 'http_request_timeout',
- array( $this,
- 'http_request_timeout' ) );
+		add_filter( 'http_request_timeout', array( $this, 'http_request_timeout' ) );
 	}
 
 
@@ -125,6 +92,7 @@ class WPGitHubThemeUpdater {
 			$this->config['description'] = $this->get_description();
 
 		$theme_data = $this->get_theme_data();
+		dbgx_trace_var($theme_data, '$theme_data');
 		if ( ! isset( $this->config['theme_name'] ) )
 			$this->config['theme_name'] = $theme_data['Name'];
 
@@ -139,6 +107,7 @@ class WPGitHubThemeUpdater {
 
 		if ( ! isset( $this->config['readme'] ) )
 			$this->config['readme'] = 'README.md';
+		dbgx_trace_var($this->config, '$config');
 	}
 
 	/**
@@ -148,10 +117,7 @@ class WPGitHubThemeUpdater {
 	 *@return basename of the theme
 	 */
 	public function theme_basename($theme = __FILE__){
-		return trim(str_replace(WP_CONTENT_DIR.'/theme',
- '',
- basename(__FILE__)),
- '/');
+		return trim(str_replace(WP_CONTENT_DIR.'/themes', '', dirname(__FILE__)), '/');
 	}
 
 	/**
@@ -187,55 +153,25 @@ class WPGitHubThemeUpdater {
 	 * @return int $version the version number
 	 */
 	public function get_new_version() {
-		global $wp_filesystem;
 
 		$version = get_site_transient( $this->config['slug'].'_new_version' );
 
 		if ( !isset( $version ) || !$version || '' == $version ) {
 
-			$raw_response = wp_remote_get(
-				trailingslashit($this->config['raw_url']).$this->config['readme'],
-
-				array(
-					'sslverify' => $this->config['sslverify'],
-
-				)
-			);
+			$raw_response = wp_remote_get( $this->config['raw_url'], array('sslverify' => $this->config['sslverify'],));
 
 			if ( is_wp_error( $raw_response ) )
 				return false;
-			$uploaddir = wp_upload_dir();
 
-			if(!file_exists($uploaddir.'/gh-update'))
-				$wp_filesystem->mkdir($uploaddir.'/gh-update');
-			$tmp_file = $uploaddir.'/gh-update/style'.$this->config['slug'].'.tmp';
-			$wp_filesystem->put_contents($tmp_file,
- $raw_response);
-			$_data = get_file_data($tmp_file, array(
-				"Name" => "Theme Name",
-				"ThemeURI" => "Theme URI",
-				"Description" => "Description",
-				"Author" => "Author",
-				"AuthorURI" => "Author URI",
-				"Version" => "Version",
-				"Template" => "Template",
-				"Status" => "Status",
-				"Tags" => "Tags",
-				"TextDomain" => "Text Domain",
-				"DomainPath" => "Domain Path",
-			));
+			preg_match('#^\s*Version\:\s*(.*)$#im', $raw_response['body'], $matches);
 
-			$wp_filesystem->delete($tmp_file);
-
-			if(!isset($_data['Version']))
+			if(empty($matches[1]))
 				return false;
 
-			$version = $_data['Version'];
-
+			$version = $matches[1];
+			dbgx_trace_var($version, '$version');
 			// refresh every 6 hours
-			set_site_transient( $this->config['slug'].'_new_version',
- $version,
- 60*60*6 );
+			set_site_transient( $this->config['slug'].'_new_version', $version, 60*60*6 );
 		}
 
 		return $version;
@@ -252,21 +188,16 @@ class WPGitHubThemeUpdater {
 		$github_data = get_site_transient( $this->config['slug'].'_github_data' );
 
 		if ( ! isset( $github_data ) || ! $github_data || '' == $github_data ) {
-			$github_data = wp_remote_get(
-				 $this->config['api_url']
-				,
-$this->config['sslverify']
-			);
+			$github_data = wp_remote_get($this->config['api_url'], $this->config['sslverify']);
 
 			if ( is_wp_error( $github_data ) )
 				return false;
+			dbgx_trace_var($github_data, '$github_data');
 
 			$github_data = json_decode( $github_data['body'] );
 
 			// refresh every 6 hours
-			set_site_transient( $this->config['slug'].'_github_data',
- $github_data,
- 60*60*6);
+			set_site_transient( $this->config['slug'].'_github_data', $github_data, 60*60*6);
 		}
 
 		return $github_data;
@@ -281,8 +212,7 @@ $this->config['sslverify']
 	 */
 	public function get_date() {
 		$_date = $this->get_github_data();
-		return ( !empty($_date->updated_at) ) ? date( 'Y-m-d',
- strtotime( $_date->updated_at ) ) : false;
+		return ( !empty($_date->updated_at) ) ? date( 'Y-m-d', strtotime( $_date->updated_at ) ) : false;
 	}
 
 
@@ -306,7 +236,7 @@ $this->config['sslverify']
 	 */
 	public function get_theme_data() {
 		include_once( ABSPATH.'/wp-admin/includes/theme.php' );
-		$data = get_theme( $this->config['slug'] );
+		$data = wp_get_theme();
 		return $data;
 	}
 
@@ -319,30 +249,28 @@ $this->config['sslverify']
 	 * @return object $transient updated plugin data transient
 	 */
 	public function api_check( $transient ) {
-
+		dbgx_trace_var($transient, '$transient');
 		// Check if the transient contains the 'checked' information
-		// If not,
- just return its value without hacking it
+		// If not, just return its value without hacking it
 		if ( empty( $transient->checked ) )
 			return $transient;
 
 		// check the version and decide if it's new
-		$update = version_compare( $this->config['new_version'],
- $this->config['version'] );
+		$update = version_compare( $this->config['new_version'], $this->config['version'] );
 
 		if ( 1 === $update ) {
-			$response = new stdClass;
-			$response->new_version = $this->config['new_version'];
-			$response->slug = $this->config['proper_folder_name'];
-			$response->url = $this->config['github_url'];
-			$response->package = $this->config['zip_url'];
+			$response = array();
+			$response['new_version'] = $this->config['new_version'];
+			$response['slug'] = $this->config['proper_folder_name'];
+			$response['url'] = $this->config['github_url'];
+			$response['package'] = $this->config['zip_url'];
+			dbgx_trace_var($response, '$response');
 
-			// If response is false,
- don't alter the transient
+			// If response is false, don't alter the transient
 			if ( false !== $response )
 				$transient->response[ $this->config['slug'] ] = $response;
 		}
-
+		// dbgx_trace_var($transient, '$transient');
 		return $transient;
 	}
 
@@ -382,8 +310,7 @@ $this->config['sslverify']
 
 	/**
 	 * Upgrader/Updater
-	 * Move & activate the theme,
- echo the update message
+	 * Move & activate the theme, echo the update message
 	 *
 	 * @since 1.0
 	 * @param boolean $true always true
@@ -398,11 +325,11 @@ $this->config['sslverify']
 		global $wp_filesystem;
 
 		// Move & Activate
-		$proper_destination = WP_PLUGIN_DIR.'/'.$this->config['proper_folder_name'];
+		$proper_destination = WP_CONTENT_DIR.'/themes/'.$this->config['proper_folder_name'];
 		$wp_filesystem->move( $result['destination'],
  $proper_destination );
 		$result['destination'] = $proper_destination;
-		$activate = activate_plugin( WP_PLUGIN_DIR.'/'.$this->config['slug'] );
+		$activate = activate_plugin( WP_CONTENT_DIR.'/themes/'.$this->config['slug'] );
 
 		// Output the update message
 		$fail		= __('The plugin has been updated,
