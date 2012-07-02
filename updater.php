@@ -323,10 +323,11 @@ class WPGitHubThemeUpdater {
 		global $wp_filesystem;
 
 		// Move & Activate
-		$proper_destination = WP_CONTENT_DIR.'/themes/'.$this->config['proper_folder_name'];
+		$proper_destination = WP_CONTENT_DIR.'/themes/'.$this->config['proper_folder_name'].'/';
 		$wp_filesystem->move( $result['destination'], $proper_destination );
-		dbgx_trace_var($result, '$result');
 		$result['destination'] = $proper_destination;
+		$result['destination_name'] = $this->config['proper_folder_name'];
+		$result['remote_destination'] = $proper_destination;
 		$activate = switch_theme( $this->config['slug'], WP_CONTENT_DIR.'/themes/'.$this->config['slug'].'/style.css' );
 
 		return $result;
