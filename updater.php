@@ -67,7 +67,7 @@ class WPGitHubThemeUpdater {
 
 		// Hook into the plugin details screen
 		add_filter( 'themes_api', array( $this, 'get_theme_info' ), 10, 3 );
-		add_filter( 'upgrader_post_install', array( $this, 'upgrader_post_install' ), 10, 3 );
+		add_filter( 'upgrader_post_install', array( $this, 'upgrader_post_install' ), 11, 3 );
 
 		// set timeout
 		add_filter( 'http_request_timeout', array( $this, 'http_request_timeout' ) );
@@ -328,8 +328,7 @@ class WPGitHubThemeUpdater {
 		$result['destination'] = $proper_destination;
 		$result['destination_name'] = $this->config['proper_folder_name'];
 		$result['remote_destination'] = $proper_destination;
-		$activate = switch_theme( $this->config['slug'], WP_CONTENT_DIR.'/themes/'.$this->config['slug'].'/style.css' );
-
+		$activate = switch_theme( $this->config['slug'], $this->config['slug'] );
 		return $result;
 
 	}
