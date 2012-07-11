@@ -92,7 +92,6 @@ class WPGitHubThemeUpdater {
 			$this->config['description'] = $this->get_description();
 
 		$theme_data = $this->get_theme_data();
-		dbgx_trace_var($theme_data, '$theme_data');
 		if ( ! isset( $this->config['theme_name'] ) )
 			$this->config['theme_name'] = $theme_data['Name'];
 
@@ -104,10 +103,8 @@ class WPGitHubThemeUpdater {
 
 		if ( ! isset( $this->config['homepage'] ) )
 			$this->config['homepage'] = $theme_data['themeURI'];
-
 		if ( ! isset( $this->config['readme'] ) )
 			$this->config['readme'] = 'README.md';
-		dbgx_trace_var($this->config, '$config');
 	}
 
 	/**
@@ -169,7 +166,6 @@ class WPGitHubThemeUpdater {
 				return false;
 
 			$version = $matches[1];
-			dbgx_trace_var($version, '$version');
 			// refresh every 6 hours
 			set_site_transient( $this->config['slug'].'_new_version', $version, 60*60*6 );
 		}
@@ -192,7 +188,6 @@ class WPGitHubThemeUpdater {
 
 			if ( is_wp_error( $github_data ) )
 				return false;
-			dbgx_trace_var($github_data, '$github_data');
 
 			$github_data = json_decode( $github_data['body'] );
 
@@ -249,7 +244,6 @@ class WPGitHubThemeUpdater {
 	 * @return object $transient updated plugin data transient
 	 */
 	public function api_check( $transient ) {
-		// dbgx_trace_var($transient, '$transient');
 		// Check if the transient contains the 'checked' information
 		// If not, just return its value without hacking it
 		if ( empty( $transient->checked ) )
@@ -264,13 +258,11 @@ class WPGitHubThemeUpdater {
 			$response['slug'] = $this->config['proper_folder_name'];
 			$response['url'] = $this->config['github_url'];
 			$response['package'] = $this->config['zip_url'];
-			dbgx_trace_var($response, '$response');
 
 			// If response is false, don't alter the transient
 			if ( false !== $response )
 				$transient->response[ $this->config['slug'] ] = $response;
 		}
-		dbgx_trace_var($transient, '$transient');
 		return $transient;
 	}
 
